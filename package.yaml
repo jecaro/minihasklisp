@@ -1,0 +1,41 @@
+name:                eval-expr
+version:             0.1.0.0
+license:             BSD3
+author:              "Jean-Charles Quillet"
+maintainer:          "jeancharles.quillet@gmail.com"
+copyright:           "2021 Jean-Charles Quillet"
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+
+dependencies:
+- name: base
+
+library:
+  source-dirs: src
+
+ghc-options:
+  -Wall
+  -Wcompat
+  -Widentities
+  -Wincomplete-record-updates
+  -Wincomplete-uni-patterns
+  -Wpartial-fields
+  -Wredundant-constraints
+
+tests:
+  eval-expr-test:
+    main:                Spec.hs
+    source-dirs:         test
+    dependencies:
+    - eval-expr
+    - hspec
+
+default-extensions:
+  - OverloadedStrings
+  - ScopedTypeVariables
