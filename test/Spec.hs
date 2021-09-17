@@ -47,3 +47,15 @@ main = hspec $ do
                 `shouldBe` Just ("42", "foobar")
             parseSome (parseAnyChar ['0' .. '9']) "foobar42"
                 `shouldBe` Nothing
+
+        it "parseUInt" $ do
+            parseUInt "42foobar" `shouldBe` Just (42, "foobar")
+            parseUInt "-42foobar" `shouldBe` Nothing
+
+        it "parseInt" $ do
+            parseInt "42foobar" `shouldBe` Just (42, "foobar")
+            parseInt "-42foobar" `shouldBe` Just (-42, "foobar")
+
+        it "parseTuple" $ do
+            parseTuple parseInt "(123,456) foo bar "
+                `shouldBe` Just ((123, 456), " foo bar ")

@@ -1,5 +1,7 @@
 module Parser where
 
+import Text.Read (readMaybe)
+
 type Parser a = String -> Maybe (a, String)
 
 parseChar :: Char -> Parser Char
@@ -42,3 +44,30 @@ parseSome :: Parser a -> Parser [a]
 parseSome p str
     | Just ((r1, r2), str') <- parseAnd p (parseMany p) str = Just (r1 : r2, str')
     | otherwise = Nothing
+
+parseUInt :: Parser Int
+parseUInt str
+    | Just (intStr, str') <- parseSome (parseAnyChar ['0' .. '9']) str =
+        case readMaybe intStr of
+            Nothing -> Nothing
+            Just int -> Just (int, str')
+    | otherwise = Nothing
+
+parseInt :: Parser Int
+parseInt str
+    | Just (intStr, str') <- parseSome (parseAnyChar ('-' : ['0' .. '9'])) str =
+        case readMaybe intStr of
+            Nothing -> Nothing
+            Just int -> Just (int, str')
+    | otherwise = Nothing
+
+parseTuple :: Parser a -> Parser (a, a)
+parseTuple p str
+    | Just (((((_, a1), _), a2), _), str') <-
+        (parseOpen `parseAnd` p `parseAnd` parseComa `parseAnd` p `parseAnd` parseClose) str =
+        Just ((a1, a2), str')
+    | otherwise = Nothing
+  where
+    parseOpen = parseChar '('
+    parseClose = parseChar ')'
+    parseComa = parseChar ','
