@@ -1,10 +1,28 @@
 module Parser where
 
+import Control.Applicative
 import Text.Read (readMaybe)
 
 newtype Parser a = Parser
     { runParser :: String -> Maybe (a, String)
     }
+
+instance Functor Parser where
+    fmap f (Parser fa) = Parser fb
+      where
+        fb str
+            | Just (a, str') <- fa str = Just (f a, str')
+            | otherwise = Nothing
+
+instance Applicative Parser where
+    pure x = Parser (\str -> Just (x, str))
+    liftA2 fab (Parser fa) (Parser fb) = Parser fc
+      where
+        fc str
+            | Just (a, str') <- fa str
+              , Just (b, str'') <- fb str' =
+                Just (fab a b, str'')
+            | otherwise = Nothing
 
 parseChar :: Char -> Parser Char
 parseChar = Parser . parseCharF
@@ -53,36 +71,22 @@ parseMany = Parser . parseManyF . runParser
         | otherwise = Just ([], str)
 
 parseSome :: Parser a -> Parser [a]
-parseSome = Parser . parseSomeF
-  where
-    parseSomeF p str
-        | Just ((r1, r2), str') <- runParser (parseAnd p (parseMany p)) str =
-            Just (r1 : r2, str')
-        | otherwise = Nothing
+parseSome p = (:) <$> p <*> parseMany p
 
 parseUInt :: Parser Int
-parseUInt = Parser parseUIntF
+parseUInt = Parser f
   where
-    parseUIntF str
-        | Just (intStr, str') <-
-            runParser (parseSome (parseAnyChar ['0' .. '9'])) str =
-            case readMaybe intStr of
-                Nothing -> Nothing
-                Just int -> Just (int, str')
+    parser = readMaybe <$> parseSome (parseAnyChar ['0' .. '9'])
+    f str
+        | Just (Just i, str') <- runParser parser str = Just (i, str')
         | otherwise = Nothing
 
 parseInt :: Parser Int
-parseInt = Parser parseIntF
+parseInt = Parser f
   where
-    parseIntF str
-        | Just (intStr, str') <-
-            runParser
-                ( parseSome (parseAnyChar ('-' : ['0' .. '9']))
-                )
-                str =
-            case readMaybe intStr of
-                Nothing -> Nothing
-                Just int -> Just (int, str')
+    parser = readMaybe <$> parseSome (parseAnyChar ('-' : ['0' .. '9']))
+    f str
+        | Just (Just i, str') <- runParser parser str = Just (i, str')
         | otherwise = Nothing
 
 parseTuple :: Parser a -> Parser (a, a)
