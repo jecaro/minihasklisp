@@ -1,5 +1,6 @@
 import Test.Hspec
 
+import Control.Applicative
 import Parser
 
 main :: IO ()
@@ -15,17 +16,12 @@ main = hspec $ do
             runParser (parseAnyChar "xyz") "abcd" `shouldBe` Nothing
             runParser (parseAnyChar "bca") "cdef" `shouldBe` Just ('c', "def")
 
-        it "parseAnyChar'" $ do
-            runParser (parseAnyChar' "bca") "abcd" `shouldBe` Just ('a', "bcd")
-            runParser (parseAnyChar' "xyz") "abcd" `shouldBe` Nothing
-            runParser (parseAnyChar' "bca") "cdef" `shouldBe` Just ('c', "def")
-
         it "parseOr" $ do
-            runParser (parseOr (parseChar 'a') (parseChar 'b')) "abcd"
+            runParser (parseChar 'a' <|> parseChar 'b') "abcd"
                 `shouldBe` Just ('a', "bcd")
-            runParser (parseOr (parseChar 'a') (parseChar 'b')) "bcda"
+            runParser (parseChar 'a' <|> parseChar 'b') "bcda"
                 `shouldBe` Just ('b', "cda")
-            runParser (parseOr (parseChar 'a') (parseChar 'b')) "xyz"
+            runParser (parseChar 'a' <|> parseChar 'b') "xyz"
                 `shouldBe` Nothing
 
         it "parseAnd" $ do
@@ -37,15 +33,15 @@ main = hspec $ do
                 `shouldBe` Nothing
 
         it "parseMany" $ do
-            runParser (parseMany (parseChar ' ')) "    foobar"
+            runParser (many (parseChar ' ')) "    foobar"
                 `shouldBe` Just ("    ", "foobar")
-            runParser (parseMany (parseChar ' ')) "foobar    "
+            runParser (many (parseChar ' ')) "foobar    "
                 `shouldBe` Just ("", "foobar    ")
 
         it "parseSome" $ do
-            runParser (parseSome (parseAnyChar ['0' .. '9'])) "42foobar"
+            runParser (some (parseAnyChar ['0' .. '9'])) "42foobar"
                 `shouldBe` Just ("42", "foobar")
-            runParser (parseSome (parseAnyChar ['0' .. '9'])) "foobar42"
+            runParser (some (parseAnyChar ['0' .. '9'])) "foobar42"
                 `shouldBe` Nothing
 
         it "parseUInt" $ do
