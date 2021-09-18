@@ -1,6 +1,7 @@
 module Parser where
 
 import Control.Applicative
+import Data.Bifunctor (first)
 import Data.Foldable (asum)
 import Text.Read (readMaybe)
 
@@ -11,9 +12,7 @@ newtype Parser a = Parser
 instance Functor Parser where
     fmap f (Parser fa) = Parser fb
       where
-        fb str
-            | Just (a, str') <- fa str = Just (f a, str')
-            | otherwise = Nothing
+        fb = fmap (first f) . fa
 
 instance Applicative Parser where
     pure x = Parser (\str -> Just (x, str))
