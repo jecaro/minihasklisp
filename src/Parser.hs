@@ -100,7 +100,7 @@ parseTuple = Parser . parseTupleF
                 str =
             Just ((a1, a2), str')
         | otherwise = Nothing
-      where
-        parseOpen = parseChar '('
-        parseClose = parseChar ')'
-        parseComa = parseChar ','
+
+    parseOpen = parseChar '('
+    parseClose = parseChar ')'
+    parseComa = parseChar ','
