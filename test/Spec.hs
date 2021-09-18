@@ -55,3 +55,7 @@ main = hspec $ do
         it "parseTuple" $ do
             runParser (parseTuple parseInt) "(123,456) foo bar "
                 `shouldBe` Just ((123, 456), " foo bar ")
+
+        it "parseTuple'" $ do
+            runParser (parseTuple' parseInt) "(123,456) foo bar "
+                `shouldBe` Just ((123, 456), " foo bar ")

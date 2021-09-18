@@ -1,6 +1,7 @@
 module Parser where
 
 import Control.Applicative
+import Control.Monad
 import Data.Bifunctor (first)
 import Data.Foldable (asum)
 import Text.Read (readMaybe)
@@ -32,6 +33,14 @@ instance Alternative Parser where
         f3 str
             | Just r <- f1 str = Just r
             | otherwise = f2 str
+
+instance Monad Parser where
+    (Parser fa) >>= fpb = Parser fb
+      where
+        fb str =
+            case fa str of
+                Just (r, str') -> runParser (fpb r) str'
+                Nothing -> Nothing
 
 parseChar :: Char -> Parser Char
 parseChar = Parser . parseCharF
@@ -69,3 +78,12 @@ parseTuple p = (,) <$> (parseOpen *> p <* parseComa) <*> (p <* parseClose)
     parseOpen = parseChar '('
     parseClose = parseChar ')'
     parseComa = parseChar ','
+
+parseTuple' :: Parser a -> Parser (a, a)
+parseTuple' p = do
+    void $ parseChar '('
+    a1 <- p
+    void $ parseChar ','
+    a2 <- p
+    void $ parseChar ')'
+    pure (a1, a2)
