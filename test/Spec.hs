@@ -32,6 +32,10 @@ main = hspec $ do
             runParser (parseAnd (parseChar 'a') (parseChar 'b')) "acd"
                 `shouldBe` Nothing
 
+        it "parseAndWith" $ do
+            runParser (parseAndWith (\x y -> [x, y]) (parseChar 'a') (parseChar 'b')) "abcd"
+                `shouldBe` Just ("ab", "cd")
+
         it "parseMany" $ do
             runParser (many (parseChar ' ')) "    foobar"
                 `shouldBe` Just ("    ", "foobar")

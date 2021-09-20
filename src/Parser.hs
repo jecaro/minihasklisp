@@ -3,6 +3,7 @@ module Parser where
 import Control.Applicative
 import Control.Monad
 import Data.Foldable (asum)
+import qualified Data.List as L
 import Text.Read (readMaybe)
 
 newtype Parser a = Parser
@@ -57,6 +58,17 @@ parseAnyChar = asum . fmap parseChar
 
 parseAnd :: Parser a -> Parser b -> Parser (a, b)
 parseAnd p1 p2 = (,) <$> p1 <*> p2
+
+parseAndWith :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
+parseAndWith = liftA2
+
+parseString :: String -> Parser String
+parseString str =
+    Parser
+        ( \input -> do
+            rest <- L.stripPrefix str input
+            pure (str, rest)
+        )
 
 parseUInt :: Parser Int
 parseUInt = parseRead parser
