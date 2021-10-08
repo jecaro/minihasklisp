@@ -4,6 +4,7 @@ import Control.Applicative
 import Control.Monad
 import Data.Foldable (asum)
 import qualified Data.List as L
+import Data.Maybe (fromMaybe)
 import Text.Read (readMaybe)
 
 newtype Parser a = Parser
@@ -76,9 +77,23 @@ parseUInt = parseRead parser
     parser = some (parseAnyChar ['0' .. '9'])
 
 parseInt :: Parser Int
-parseInt = parseRead parser
+parseInt = parseRead (parsePositive <|> parseNegative)
   where
-    parser = some (parseAnyChar ('-' : ['0' .. '9']))
+    parsePositive = some (parseAnyChar ['0' .. '9'])
+    parseNegative = (:) <$> parseChar '-' <*> parsePositive
+
+parseDouble :: Parser Double
+parseDouble = parseRead ((<>) <$> (parsePositive <|> parseNegative) <*> parseDec)
+  where
+    parsePositive = some (parseAnyChar ['0' .. '9'])
+    parseNegative = (:) <$> parseChar '-' <*> parsePositive
+    parseDec =
+        fromMaybe []
+            <$> optional
+                ((:) <$> parseChar '.' <*> some (parseAnyChar ['0' .. '9']))
+
+parseWhitespaces :: Parser String
+parseWhitespaces = many (parseChar ' ')
 
 parseRead :: Read a => Parser String -> Parser a
 parseRead p =
