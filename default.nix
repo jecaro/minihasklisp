@@ -1,2 +1,2 @@
 { pkgs ? import <nixpkgs> {} }:
-pkgs.haskellPackages.callCabal2nix "eval-expr" ./. {}
+pkgs.haskellPackages.callCabal2nix "epitech" ./. {}

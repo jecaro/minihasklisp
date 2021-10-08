@@ -1,4 +1,4 @@
-name:                eval-expr
+name:                epitech
 version:             0.1.0.0
 license:             BSD3
 author:              "Jean-Charles Quillet"
@@ -19,6 +19,13 @@ dependencies:
 library:
   source-dirs: src
 
+executables:
+  eval-expr:
+    main: Main.hs
+    source-dirs: eval-expr
+    dependencies:
+      - epitech
+
 ghc-options:
   -Wall
   -Wcompat
@@ -29,11 +36,11 @@ ghc-options:
   -Wredundant-constraints
 
 tests:
-  eval-expr-test:
+  spec:
     main:                Spec.hs
     source-dirs:         test
     dependencies:
-    - eval-expr
+    - epitech
     - hspec
 
 default-extensions:

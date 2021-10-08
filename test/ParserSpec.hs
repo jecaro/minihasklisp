@@ -59,6 +59,12 @@ spec = do
             runParser parseInt "42foobar" `shouldBe` Just (42, "foobar")
             runParser parseInt "-42foobar" `shouldBe` Just (-42, "foobar")
 
+        it "parseDouble" $ do
+            runParser parseDouble "42foobar" `shouldBe` Just (42, "foobar")
+            runParser parseDouble "-42foobar" `shouldBe` Just (-42, "foobar")
+            runParser parseDouble "42.13foobar" `shouldBe` Just (42.13, "foobar")
+            runParser parseDouble "-42-foobar" `shouldBe` Just (-42, "-foobar")
+
         it "parseTuple" $ do
             runParser (parseTuple parseInt) "(123,456) foo bar "
                 `shouldBe` Just ((123, 456), " foo bar ")
