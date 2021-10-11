@@ -3,32 +3,29 @@ module SExpr where
 import Control.Applicative
 import Parser
 
-data Atom = Nil | Atom String
+data SExprValue = Atom String | SExpr SExpr
     deriving (Eq, Show)
 
-data SExpr = SAtom Atom | Pair SExpr SExpr
-    deriving (Eq, Show)
-
-parseSExpr :: Parser SExpr
-parseSExpr = parseChar '\'' *> parseSExprWithoutQuote
+type SExpr = [SExprValue]
 
 render :: SExpr -> String
-render (Pair s1 s2@(Pair _ _)) = "(" <> render s1 <> renderList s2 <> ")"
+render se = "(" <> unwords (render' <$> se) <> ")"
   where
-    renderList (SAtom Nil) = ""
-    renderList a@(SAtom _) = " " <> render a
-    renderList (Pair s ss) = " " <> render s <> renderList ss
-render (Pair s1 s2@(SAtom _)) = "(" <> render s1 <> " . " <> render s2 <> ")"
-render (SAtom Nil) = "()"
-render (SAtom (Atom a)) = a
+    render' :: SExprValue -> String
+    render' (Atom a) = a
+    render' (SExpr se') = render se'
 
 toPairs :: SExpr -> String
-toPairs (Pair s1 s2) = "(" <> toPairs s1 <> " . " <> toPairs s2 <> ")"
-toPairs (SAtom Nil) = "()"
-toPairs (SAtom (Atom a)) = a
+toPairs [x] = toPairs' x
+toPairs [x1, x2] = "(" <> toPairs' x1 <> " . " <> toPairs' x2 <> ")"
+toPairs x = "(" <> unwords (toPairs' <$> x) <> ")"
 
-parseSExprWithoutQuote :: Parser SExpr
-parseSExprWithoutQuote = (parseAtom <|> parsePair <|> parseList) <* parseWhitespaces
+toPairs' :: SExprValue -> String
+toPairs' (Atom a) = a
+toPairs' (SExpr s) = toPairs s
+
+parseSExpr :: Parser SExpr
+parseSExpr = parseList <* parseWhitespaces
 
 parseOpen :: Parser Char
 parseOpen = parseChar '(' <* parseWhitespaces
@@ -36,27 +33,21 @@ parseOpen = parseChar '(' <* parseWhitespaces
 parseClose :: Parser Char
 parseClose = parseChar ')' <* parseWhitespaces
 
-parseDot :: Parser Char
-parseDot = parseChar '.' <* parseWhitespaces
-
 parseList :: Parser SExpr
-parseList = parseOpen *> parseListWithoutParen <* parseClose
+parseList = parseOpen *> some (parseAtom <|> SExpr <$> parseSExpr) <* parseClose
 
-parseListWithoutParen :: Parser SExpr
-parseListWithoutParen =
-    Pair
-        <$> parseSExprWithoutQuote
-            <*> (parseListWithoutParen <|> pure (SAtom Nil))
-
-parsePair :: Parser SExpr
-parsePair =
-    Pair
-        <$> (parseOpen *> parseSExprWithoutQuote <* parseDot)
-            <*> parseSExprWithoutQuote <* parseClose
-
-parseAtom :: Parser SExpr
-parseAtom =
-    SAtom Nil <$ parseString "()"
-        <|> SAtom . Atom <$> some (parseAnyChar alphaNum)
+parseAtom :: Parser SExprValue
+parseAtom = Atom <$> (builtins <|> ident) <* parseWhitespaces
   where
-    alphaNum = ['a' .. 'z'] <> ['A' .. 'Z'] <> ['0' .. '9']
+    ident = some (parseAnyChar validChar)
+    builtins =
+        parseString "eq?"
+            <|> parseString "atom?"
+            <|> parseString "()"
+            <|> parseString "+"
+            <|> parseString "-"
+            <|> parseString "*"
+            <|> parseString "div"
+            <|> parseString "mod"
+            <|> parseString "<"
+    validChar = ['a' .. 'z'] <> ['A' .. 'Z'] <> ['0' .. '9']

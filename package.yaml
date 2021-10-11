@@ -25,6 +25,11 @@ executables:
     source-dirs: eval-expr
     dependencies:
       - epitech
+  hal:
+    main: Main.hs
+    source-dirs: hal
+    dependencies:
+      - epitech
 
 ghc-options:
   -Wall
