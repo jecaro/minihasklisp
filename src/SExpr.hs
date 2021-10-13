@@ -52,4 +52,7 @@ parseAtom = Atom <$> (builtins <|> ident) <* parseWhitespaces
             <|> parseString "<"
             <|> parseString "lambda"
             <|> parseString "let"
+            <|> parseString "cond"
+            <|> parseString "#f"
+            <|> parseString "#t"
     validChar = ['a' .. 'z'] <> ['A' .. 'Z'] <> ['0' .. '9']
