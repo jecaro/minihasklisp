@@ -118,9 +118,11 @@ evalLambda e [SExpr params, SExpr body] args = snd $ eval e' body
 evalLambda _ _ s = wrongArgFor "lambda" s
 
 evalDefine :: Env -> SExpr -> (Env, SExprValue)
-evalDefine e [Atom x, s] = ((x, v) : e, v)
+evalDefine e [Atom a, s] = ((a, v) : e, v)
   where
     v = evalValue e s
+evalDefine e [SExpr (Atom a : args), body] =
+    evalDefine e [Atom a, SExpr [Atom "lambda", SExpr args, body]]
 evalDefine _ s = wrongArgFor "define" s
 
 evalLet :: Env -> SExpr -> (Env, SExprValue)
