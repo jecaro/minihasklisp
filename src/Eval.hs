@@ -67,8 +67,8 @@ evalCar _ s = wrongArgFor "car" s
 evalCdr :: Env -> SExpr -> SExprValue
 evalCdr e [SExpr s]
     | SExpr (_ : vs) <- snd $ eval e s = SExpr vs
-    | otherwise = wrongArgFor "car" s
-evalCdr _ s = wrongArgFor "crd" s
+    | otherwise = wrongArgFor "cdr" s
+evalCdr _ s = wrongArgFor "cdr" s
 
 evalQuote :: SExpr -> SExprValue
 evalQuote [v] = v
@@ -77,7 +77,6 @@ evalQuote s = wrongArgFor "quote" s
 evalIsAtom :: Env -> SExpr -> SExprValue
 evalIsAtom e [v]
     | Atom _ <- v' = toScheme True
-    | SExpr s <- v', s == emptyList = toScheme True
     | otherwise = toScheme False
   where
     v' = evalValue e v
@@ -87,7 +86,6 @@ evalIsEq :: Env -> SExpr -> SExprValue
 evalIsEq e [v1, v2] = toScheme $ eq (evalValue e v1) (evalValue e v2)
   where
     eq (Atom a1) (Atom a2) = a1 == a2
-    eq (SExpr s1) (SExpr s2) = s1 == emptyList && s2 == emptyList
     eq _ _ = False
 evalIsEq _ s = wrongArgFor "eq?" s
 
