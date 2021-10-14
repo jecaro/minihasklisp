@@ -41,7 +41,7 @@ parseList =
         <|> parseString "'()" $> [Atom "quote", Atom "()"]
         <|> parseChar '\'' *> (unsugar <$> parseList)
   where
-    unsugar s = [Atom "quote", SExpr s]
+    unsugar s = [Atom "quote", SExpr (s <> [Atom "()"])]
 
 parseAtom :: Parser SExprValue
 parseAtom = Atom <$> (builtins <|> ident) <* parseWhitespaces
