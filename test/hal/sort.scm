@@ -17,3 +17,4 @@
         (#t (let ((lsts (split-half lst '() '())))
               (merge-lists (merge-sort (car lsts))
                            (merge-sort (cdr lsts)))))))
+(merge-sort '(39 16 22 24 17 29 18 26 27 3 34 25 10 6 7 12 8 30 2 21 13 36 14 38 32 41 40 4 35 19 5 33 23 9 15 31 28 20 42 37 11 1))
