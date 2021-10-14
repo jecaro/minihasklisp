@@ -1,6 +1,7 @@
 module SExpr where
 
 import Control.Applicative
+import Data.Functor
 import Parser
 
 data SExprValue = Atom String | SExpr SExpr
@@ -34,7 +35,13 @@ parseClose :: Parser Char
 parseClose = parseChar ')' <* parseWhitespaces
 
 parseList :: Parser SExpr
-parseList = parseOpen *> some (parseAtom <|> SExpr <$> parseSExpr) <* parseClose
+parseList =
+    parseOpen *> some (parseAtom <|> SExpr <$> parseSExpr) <* parseClose
+        -- syntaxic sugar
+        <|> parseString "'()" $> [Atom "quote", Atom "()"]
+        <|> parseChar '\'' *> (unsugar <$> parseList)
+  where
+    unsugar s = [Atom "quote", SExpr s]
 
 parseAtom :: Parser SExprValue
 parseAtom = Atom <$> (builtins <|> ident) <* parseWhitespaces
@@ -55,4 +62,4 @@ parseAtom = Atom <$> (builtins <|> ident) <* parseWhitespaces
             <|> parseString "cond"
             <|> parseString "#f"
             <|> parseString "#t"
-    validChar = ['a' .. 'z'] <> ['A' .. 'Z'] <> ['0' .. '9']
+    validChar = ['a' .. 'z'] <> ['A' .. 'Z'] <> ['0' .. '9'] <> ['?', '-']
