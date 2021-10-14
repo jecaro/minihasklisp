@@ -93,7 +93,7 @@ parseDouble = parseRead ((<>) <$> (parsePositive <|> parseNegative) <*> parseDec
                 ((:) <$> parseChar '.' <*> some (parseAnyChar ['0' .. '9']))
 
 parseWhitespaces :: Parser String
-parseWhitespaces = many (parseChar ' ')
+parseWhitespaces = many (parseAnyChar [' ', '\n'])
 
 parseRead :: Read a => Parser String -> Parser a
 parseRead p =
