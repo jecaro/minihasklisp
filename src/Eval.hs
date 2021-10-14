@@ -51,28 +51,29 @@ evalValue _ a@(Atom "#t") = a
 evalValue e a@(Atom n)
     | Just v <- lookup n e = v
     | Just _ <- toInt a = a
-    | otherwise = error "Not bounded"
+    | otherwise = error $ "Not bounded: " <> n
 evalValue e (SExpr s) = snd $ eval e s
 
 evalCons :: Env -> SExpr -> SExprValue
 evalCons e s@[_, _] = SExpr $ evalValue e <$> s
-evalCons _ s = wrongArgFor "cons" s
+evalCons e s = wrongArgFor "cons" e s
 
 evalCar :: Env -> SExpr -> SExprValue
-evalCar e [SExpr s]
-    | SExpr (v : _) <- snd $ eval e s = v
-    | otherwise = wrongArgFor "car" s
-evalCar _ s = wrongArgFor "car" s
+evalCar e [v]
+    | SExpr (v' : _) <- evalValue e v = v'
+    | otherwise = wrongArgFor "car" e v
+evalCar e s = wrongArgFor "car" e s
 
 evalCdr :: Env -> SExpr -> SExprValue
-evalCdr e [SExpr s]
-    | SExpr (_ : vs) <- snd $ eval e s = SExpr vs
-    | otherwise = wrongArgFor "cdr" s
-evalCdr _ s = wrongArgFor "cdr" s
+evalCdr e [v]
+    | SExpr [_, s] <- evalValue e v = s
+    | SExpr (_ : vs) <- evalValue e v = SExpr vs
+    | otherwise = wrongArgFor "cdr" e $ evalValue e v
+evalCdr e s = wrongArgFor "cdr" e s
 
 evalQuote :: SExpr -> SExprValue
 evalQuote [v] = v
-evalQuote s = wrongArgFor "quote" s
+evalQuote s = wrongArgFor "quote" [] s
 
 evalIsAtom :: Env -> SExpr -> SExprValue
 evalIsAtom e [v]
@@ -80,14 +81,14 @@ evalIsAtom e [v]
     | otherwise = toScheme False
   where
     v' = evalValue e v
-evalIsAtom _ s = wrongArgFor "atom" s
+evalIsAtom e s = wrongArgFor "atom" e s
 
 evalIsEq :: Env -> SExpr -> SExprValue
 evalIsEq e [v1, v2] = toScheme $ eq (evalValue e v1) (evalValue e v2)
   where
     eq (Atom a1) (Atom a2) = a1 == a2
     eq _ _ = False
-evalIsEq _ s = wrongArgFor "eq?" s
+evalIsEq e s = wrongArgFor "eq?" e s
 
 evalArith :: (Int -> Int -> Int) -> Int -> Env -> SExpr -> SExprValue
 evalArith op d e args = toScheme r
@@ -97,54 +98,61 @@ evalArith op d e args = toScheme r
     r
         | Just [x] <- ints = op d x
         | Just (x : xs) <- ints = foldl' op x xs
-        | otherwise = wrongArgFor "exp arithm" args
+        | otherwise = wrongArgFor "exp arithm" e args
 
 evalBin :: ToScheme a => (Int -> Int -> a) -> Env -> SExpr -> SExprValue
 evalBin op e s@[v1, v2]
     | Just i1 <- toInt v1', Just i2 <- toInt v2' = toScheme (op i1 i2)
-    | otherwise = wrongArgFor "binary op" s
+    | otherwise = wrongArgFor "binary op" e s
   where
     v1' = evalValue e v1
     v2' = evalValue e v2
-evalBin _ _ s = wrongArgFor "binary op" s
+evalBin _ e s = wrongArgFor "binary op" e s
 
 evalLambda :: Env -> SExpr -> SExpr -> SExprValue
-evalLambda e [SExpr params, SExpr body] args = snd $ eval e' body
+evalLambda e [SExpr params, SExpr body] args = snd $ eval (e' <> e) body
   where
-    e' = foldMap define $ zip params args
-    define (x, v) = fst $ evalDefine e [x, v]
-evalLambda _ _ s = wrongArgFor "lambda" s
+    e' = define <$> zip params args
+    define (x, v) = evalDefine' e [x, v]
+evalLambda e _ s = wrongArgFor "lambda" e s
 
-evalDefine :: Env -> SExpr -> (Env, SExprValue)
-evalDefine e [Atom a, s] = ((a, v) : e, v)
+evalDefine' :: Env -> SExpr -> (String, SExprValue)
+evalDefine' e [Atom a, s] = (a, v)
   where
     v = evalValue e s
-evalDefine e [SExpr (Atom a : args), body] =
-    evalDefine e [Atom a, SExpr [Atom "lambda", SExpr args, body]]
-evalDefine _ s = wrongArgFor "define" s
+evalDefine' e [SExpr (Atom a : args), body] =
+    evalDefine' e [Atom a, SExpr [Atom "lambda", SExpr args, body]]
+evalDefine' e s = wrongArgFor "define" e s
+
+evalDefine :: Env -> SExpr -> (Env, SExprValue)
+evalDefine e s = (e' : e, v)
+  where
+    e'@(_, v) = evalDefine' e s
 
 evalLet :: Env -> SExpr -> (Env, SExprValue)
 evalLet e [SExpr defines, s] = (e, evalValue e' s)
   where
     e' = foldMap (fst . evalDefine e . toSExpr) defines
     toSExpr (SExpr s') = s'
-    toSExpr s' = wrongArgFor "let" s'
-evalLet _ s = wrongArgFor "let" s
+    toSExpr s' = wrongArgFor "let" e s'
+evalLet e s = wrongArgFor "let" e s
 
 evalCond :: Env -> SExpr -> (Env, SExprValue)
 evalCond e (SExpr [v1, v2] : xs) =
     case evalValue e v1 of
         Atom "#t" -> (e, evalValue e v2)
         Atom "#f" -> evalCond e xs
-        s -> wrongArgFor "cond" s
-evalCond _ s = wrongArgFor "cond" s
-
-emptyList :: SExpr
-emptyList = [Atom "()"]
+        s -> wrongArgFor "cond" e s
+evalCond e s = wrongArgFor "cond" e s
 
 toInt :: SExprValue -> Maybe Int
 toInt (Atom a) = fst <$> runParser parseInt a
 toInt _ = Nothing
 
-wrongArgFor :: Show a => String -> a -> b
-wrongArgFor name x = error $ "wrong argument for " <> name <> " " <> show x
+wrongArgFor :: Show a => String -> Env -> a -> b
+wrongArgFor name e x =
+    error $
+        unlines
+            [ "wrong argument for: " <> name <> " " <> show x
+            , "with env = " <> show e
+            ]
