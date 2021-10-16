@@ -3,6 +3,7 @@ import Data.Bifunctor
 import Eval
 import Parser
 import SExpr
+import System.Console.Haskeline
 import System.Environment
 
 main :: IO ()
@@ -10,10 +11,12 @@ main = do
     args <- getArgs
     progName <- getProgName
     case args of
-        ["-i"] -> repl []
+        ["-i"] -> runRepl []
         [file] -> void $ interpret file
-        [file, "-i"] -> interpret file >>= repl
+        [file, "-i"] -> interpret file >>= runRepl
         _ -> putStrLn $ progName <> ": [-i|filename]"
+  where
+    runRepl = runInputT defaultSettings . repl
 
 interpret :: String -> IO Env
 interpret file = do
@@ -21,11 +24,15 @@ interpret file = do
     putStrLn $ unlines r
     return e
 
-repl :: Env -> IO ()
+repl :: Env -> InputT IO ()
 repl e = do
-    (e', r) <- parseAndEval e <$> getLine
-    putStrLn $ unlines r
-    repl e'
+    mInput <- getInputLine "> "
+    case mInput of
+        Nothing -> repl e
+        Just input -> do
+            let (e', r) = parseAndEval e input
+            outputStrLn $ unlines r
+            repl e'
 
 parseAndEval :: Env -> String -> (Env, [String])
 parseAndEval e content =

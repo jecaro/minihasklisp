@@ -30,6 +30,7 @@ executables:
     source-dirs: hal
     dependencies:
       - epitech
+      - haskeline
 
 ghc-options:
   -Wall
