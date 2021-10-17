@@ -41,8 +41,8 @@ parseAndEval e content =
         Just (s, "") ->
             ( e'
             ,
-                [ "r = " <> toPairs' v
-                , "e = " <> show (second toPairs' <$> e')
+                [ "r = " <> renderValue v
+                , "e = " <> show (second toPairsValue <$> e')
                 ]
             )
           where

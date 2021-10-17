@@ -10,20 +10,25 @@ data SExprValue = Atom String | SExpr SExpr
 type SExpr = [SExprValue]
 
 render :: SExpr -> String
-render se = "(" <> unwords (render' <$> se) <> ")"
+render s = "(" <> render' s <> ")"
   where
-    render' :: SExprValue -> String
-    render' (Atom a) = a
-    render' (SExpr se') = render se'
+    render' [v] = renderValue v
+    render' [v, Atom "()"] = renderValue v
+    render' [v, SExpr s'] = renderValue v <> " " <> render' s'
+    render' [v1, v2] = renderValue v1 <> " . " <> renderValue v2
+    render' (x : xs) = renderValue x <> " " <> render' xs
+    render' [] = ""
+
+renderValue :: SExprValue -> String
+renderValue (Atom a) = a
+renderValue (SExpr s) = render s
 
 toPairs :: SExpr -> String
-toPairs [x] = toPairs' x
-toPairs [x1, x2] = "(" <> toPairs' x1 <> " . " <> toPairs' x2 <> ")"
-toPairs x = "(" <> unwords (toPairs' <$> x) <> ")"
+toPairs x = "(" <> unwords (toPairsValue <$> x) <> ")"
 
-toPairs' :: SExprValue -> String
-toPairs' (Atom a) = a
-toPairs' (SExpr s) = toPairs s
+toPairsValue :: SExprValue -> String
+toPairsValue (Atom a) = a
+toPairsValue (SExpr s) = toPairs s
 
 parseSExpr :: Parser SExpr
 parseSExpr = parseList <* parseWhitespaces
