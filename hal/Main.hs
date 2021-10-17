@@ -20,7 +20,7 @@ main = do
 
 interpret :: String -> IO Env
 interpret file = do
-    (e, r) <- parseAndEval [] <$> readFile file
+    (r, e) <- (`parseAndEval` []) <$> readFile file
     putStrLn $ unlines r
     return e
 
@@ -30,21 +30,21 @@ repl e = do
     case mInput of
         Nothing -> repl e
         Just input -> do
-            let (e', r) = parseAndEval e input
+            let (r, e') = parseAndEval input e
             outputStrLn $ unlines r
             repl e'
 
-parseAndEval :: Env -> String -> (Env, [String])
-parseAndEval e content =
+parseAndEval :: String -> Env -> ([String], Env)
+parseAndEval content e =
     case runParser parseSExpr content of
-        Nothing -> (e, ["Unable to parse: ", content])
+        Nothing -> (["Unable to parse: ", content], e)
         Just (s, "") ->
-            ( e'
-            ,
+            (
                 [ "r = " <> renderValue v
                 , "e = " <> show (second toPairsValue <$> e')
                 ]
+            , e'
             )
           where
-            (e', v) = eval e s
-        Just (s, x) -> parseAndEval (fst $ eval e s) x
+            (v, e') = eval s e
+        Just (s, x) -> parseAndEval x (snd $ eval s e)
