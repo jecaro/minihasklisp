@@ -1,8 +1,8 @@
 import Control.Monad
 import Data.Bifunctor
-import Eval
+import Hal.Eval
+import Hal.SExpr
 import Parser
-import SExpr
 import System.Console.Haskeline
 import System.Environment
 

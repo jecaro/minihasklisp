@@ -1,11 +1,11 @@
 {-# LANGUAGE TupleSections #-}
 
-module Eval where
+module Hal.Eval where
 
 import Control.Monad
 import Data.Foldable
+import Hal.SExpr
 import Parser
-import SExpr
 
 type Env = [(String, SExprValue)]
 

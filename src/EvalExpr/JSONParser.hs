@@ -1,4 +1,4 @@
-module JSONParser where
+module EvalExpr.JSONParser where
 
 import Control.Applicative
 import Parser

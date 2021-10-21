@@ -1,4 +1,4 @@
-module Expression where
+module EvalExpr.Expression where
 
 import Control.Applicative ((<|>))
 import Parser

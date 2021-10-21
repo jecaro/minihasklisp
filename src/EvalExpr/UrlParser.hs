@@ -1,4 +1,4 @@
-module UrlParser where
+module EvalExpr.UrlParser where
 
 import Control.Applicative
 import Parser

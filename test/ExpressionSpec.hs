@@ -2,7 +2,7 @@ module ExpressionSpec (spec) where
 
 import Test.Hspec
 
-import Expression
+import EvalExpr.Expression
 import Parser
 
 spec :: Spec

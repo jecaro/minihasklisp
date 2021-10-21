@@ -1,4 +1,4 @@
-module SExpr where
+module Hal.SExpr where
 
 import Control.Applicative
 import Data.Functor
