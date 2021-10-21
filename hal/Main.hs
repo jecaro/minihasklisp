@@ -38,13 +38,22 @@ parseAndEval :: String -> Env -> ([String], Env)
 parseAndEval content e =
     case runParser parseSExpr content of
         Nothing -> (["Unable to parse: ", content], e)
-        Just (s, "") ->
-            (
-                [ "r = " <> renderValue v
-                , "e = " <> show (second toPairsValue <$> e')
-                ]
-            , e'
-            )
-          where
-            (v, e') = eval s e
-        Just (s, x) -> parseAndEval x (snd $ eval s e)
+        Just (s, x) ->
+            case eval s e of
+                Left err -> ([renderError err], e)
+                Right r@(_, e') -> case x of
+                    "" -> (renderResult r, e)
+                    x' -> parseAndEval x' e'
+  where
+    renderError (WrongArgument cmd arg env) =
+        unlines
+            [ "Wrong argument for " <> cmd <> " " <> arg
+            , "With env " <> show env
+            ]
+    renderError (NotBounded a) = "Not bounded: " <> a
+    renderError (NotImplemented s) = "Not implemented: " <> toPairs s
+    renderError (IntConvert v) = "Int conversion error: " <> toPairsValue v
+    renderResult (v, e') =
+        [ "r = " <> renderValue v
+        , "e = " <> show (second toPairsValue <$> e')
+        ]
