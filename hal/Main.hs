@@ -60,12 +60,10 @@ parseEvalPrint input e = do
     pure $ fromRight e (snd <$> r)
 
 repl :: Env -> InputT IO ()
-repl e = do
-    mInput <- getInputLine "> "
-    case mInput of
-        Nothing -> repl e
-        Just input -> do
-            parseEvalPrint input e >>= repl
+repl e = evalLine =<< getInputLine "> "
+  where
+    evalLine Nothing = repl e
+    evalLine (Just input) = parseEvalPrint input e >>= repl
 
 data Error = ErParse String | ErEval Eval.Error
 type Result = Either Error (SExprValue, Env)
