@@ -1,22 +1,41 @@
-import Control.Monad
 import Data.Bifunctor
+import Data.Maybe
 import Hal.Eval
 import Hal.SExpr
 import Parser
 import System.Console.Haskeline
 import System.Environment
 
+data Options = Options
+    { opFile :: Maybe String
+    , opInteractive :: Bool
+    , opHelp :: Bool
+    }
+
+parseOptions :: [String] -> Options
+parseOptions = foldr f def
+  where
+    def = Options{opFile = Nothing, opInteractive = False, opHelp = False}
+    f "-i" o = o{opInteractive = True}
+    f "-h" o = o{opHelp = True}
+    f file o = o{opFile = Just file}
+
 main :: IO ()
 main = do
-    args <- getArgs
-    progName <- getProgName
-    case args of
-        ["-i"] -> runRepl []
-        [file] -> void $ interpret file
-        [file, "-i"] -> interpret file >>= runRepl
-        _ -> putStrLn $ progName <> ": [-i|filename]"
+    options@Options{opFile = file, opInteractive = interactive} <-
+        parseOptions <$> getArgs
+    if valid options
+        then do
+            progName <- getProgName
+            putStrLn $ progName <> ": [-i] [-h] [file]"
+        else initialEnv file >>= toRepl interactive
   where
-    runRepl = runInputT defaultSettings . repl
+    valid Options{opFile = file, opInteractive = interactive, opHelp = help} =
+        help || (not interactive && isNothing file)
+    initialEnv Nothing = pure []
+    initialEnv (Just file) = interpret file
+    toRepl True = runInputT defaultSettings . repl
+    toRepl False = const mempty
 
 interpret :: String -> IO Env
 interpret file = do
