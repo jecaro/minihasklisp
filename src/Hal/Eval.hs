@@ -25,6 +25,16 @@ data Error
     | NotImplemented SExpr
     | IntConvert SExprValue
 
+renderError :: Error -> String
+renderError (WrongArgument cmd arg env) =
+    unlines
+        [ "Wrong argument for " <> cmd <> " " <> arg
+        , "With env " <> show env
+        ]
+renderError (NotBounded a) = "Not bounded: " <> a
+renderError (NotImplemented s) = "Not implemented: " <> toPairs s
+renderError (IntConvert v) = "Int conversion error: " <> toPairsValue v
+
 runEnv :: (Env -> Either Error a) -> Env -> Either Error (a, Env)
 runEnv f e = (,e) <$> f e
 

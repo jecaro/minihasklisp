@@ -1,10 +1,14 @@
 import Data.Bifunctor
 import Data.Maybe
-import Hal.Eval
+import Hal.Eval (Env, eval, renderError)
 import Hal.SExpr
 import Parser
 import System.Console.Haskeline
 import System.Environment
+
+import Control.Monad.IO.Class (liftIO)
+import Data.Either
+import qualified Hal.Eval as Eval
 
 data Options = Options
     { opFile :: Maybe String
@@ -15,7 +19,12 @@ data Options = Options
 parseOptions :: [String] -> Options
 parseOptions = foldr f def
   where
-    def = Options{opFile = Nothing, opInteractive = False, opHelp = False}
+    def =
+        Options
+            { opFile = Nothing
+            , opInteractive = False
+            , opHelp = False
+            }
     f "-i" o = o{opInteractive = True}
     f "-h" o = o{opHelp = True}
     f file o = o{opFile = Just file}
@@ -28,20 +37,27 @@ main = do
         then do
             progName <- getProgName
             putStrLn $ progName <> ": [-i] [-h] [file]"
-        else initialEnv file >>= toRepl interactive
+        else do
+            runInputT defaultSettings $ do
+                initialEnv file >>= toRepl interactive
   where
     valid Options{opFile = file, opInteractive = interactive, opHelp = help} =
         help || (not interactive && isNothing file)
     initialEnv Nothing = pure []
-    initialEnv (Just file) = interpret file
-    toRepl True = runInputT defaultSettings . repl
-    toRepl False = const mempty
+    initialEnv (Just file) = interpretFile file
+    toRepl True = repl
+    toRepl False = const $ pure ()
 
-interpret :: String -> IO Env
-interpret file = do
-    (r, e) <- (`parseAndEval` []) <$> readFile file
-    putStrLn $ unlines r
-    return e
+interpretFile :: String -> InputT IO Env
+interpretFile file = do
+    content <- liftIO $ readFile file
+    parseEvalPrint content []
+
+parseEvalPrint :: String -> Env -> InputT IO Env
+parseEvalPrint input e = do
+    let r = parseAndEval input e
+    outputStrLn $ renderResult r
+    pure $ fromRight e (snd <$> r)
 
 repl :: Env -> InputT IO ()
 repl e = do
@@ -49,30 +65,29 @@ repl e = do
     case mInput of
         Nothing -> repl e
         Just input -> do
-            let (r, e') = parseAndEval input e
-            outputStrLn $ unlines r
-            repl e'
+            parseEvalPrint input e >>= repl
 
-parseAndEval :: String -> Env -> ([String], Env)
-parseAndEval content e =
-    case runParser parseSExpr content of
-        Nothing -> (["Unable to parse: ", content], e)
-        Just (s, x) ->
-            case eval s e of
-                Left err -> ([renderError err], e)
-                Right r@(_, e') -> case x of
-                    "" -> (renderResult r, e)
-                    x' -> parseAndEval x' e'
-  where
-    renderError (WrongArgument cmd arg env) =
-        unlines
-            [ "Wrong argument for " <> cmd <> " " <> arg
-            , "With env " <> show env
-            ]
-    renderError (NotBounded a) = "Not bounded: " <> a
-    renderError (NotImplemented s) = "Not implemented: " <> toPairs s
-    renderError (IntConvert v) = "Int conversion error: " <> toPairsValue v
-    renderResult (v, e') =
+data Error = ErParse String | ErEval Eval.Error
+type Result = Either Error (SExprValue, Env)
+
+renderResult :: Result -> String
+renderResult (Left (ErEval err)) = renderError err
+renderResult (Left (ErParse input)) = "Unable to parse: " <> input
+renderResult (Right (v, e')) =
+    unlines
         [ "r = " <> renderValue v
         , "e = " <> show (second toPairsValue <$> e')
         ]
+
+parseAndEval :: String -> Env -> Either Error (SExprValue, Env)
+parseAndEval input e = do
+    (s, input') <- withParseError $ runParser parseSExpr input
+    r@(_, e') <- withEvalError $ eval s e
+    case input' of
+        "" -> Right r
+        _ -> parseAndEval input' e'
+  where
+    withParseError Nothing = Left $ ErParse input
+    withParseError (Just r) = Right r
+    withEvalError (Left err) = Left $ ErEval err
+    withEvalError (Right x) = Right x
