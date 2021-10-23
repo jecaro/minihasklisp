@@ -49,22 +49,8 @@ parseList =
     unsugar s = [Atom "quote", SExpr (s <> [Atom "()"])]
 
 parseAtom :: Parser SExprValue
-parseAtom = Atom <$> (builtins <|> ident) <* parseWhitespaces
+parseAtom = Atom <$> (nil <|> ident) <* parseWhitespaces
   where
-    ident = some (parseAnyChar validChar)
-    builtins =
-        parseString "eq?"
-            <|> parseString "atom?"
-            <|> parseString "()"
-            <|> parseString "+"
-            <|> parseString "-"
-            <|> parseString "*"
-            <|> parseString "div"
-            <|> parseString "mod"
-            <|> parseString "<"
-            <|> parseString "lambda"
-            <|> parseString "let"
-            <|> parseString "cond"
-            <|> parseString "#f"
-            <|> parseString "#t"
-    validChar = ['a' .. 'z'] <> ['A' .. 'Z'] <> ['0' .. '9'] <> ['?', '-']
+    ident = some (parsePred (`notElem` invalidChars))
+    invalidChars = " \n()'" :: String
+    nil = parseString "()"

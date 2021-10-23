@@ -47,11 +47,14 @@ instance Monad Parser where
             )
 
 parseChar :: Char -> Parser Char
-parseChar = Parser . parseCharF
+parseChar = parsePred . (==)
+
+parsePred :: (Char -> Bool) -> Parser Char
+parsePred p = Parser parsePredF
   where
-    parseCharF _ [] = Nothing
-    parseCharF c (x : xs)
-        | c == x = Just (x, xs)
+    parsePredF [] = Nothing
+    parsePredF (x : xs)
+        | p x = Just (x, xs)
         | otherwise = Nothing
 
 parseAnyChar :: String -> Parser Char
