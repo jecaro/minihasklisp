@@ -24,6 +24,7 @@ data Error
     | NotBounded String
     | NotImplemented SExpr
     | IntConvert SExprValue
+    deriving (Eq, Show)
 
 renderError :: Error -> String
 renderError (WrongArgument cmd arg env) =
@@ -48,7 +49,7 @@ eval (Atom "atom?" : sx) e = runEnv (evalIsAtom sx) e
 eval (Atom "+" : sx) e = runEnv (evalArith (+) 0 sx) e
 eval (Atom "-" : sx) e = runEnv (evalArith (-) 0 sx) e
 eval (Atom "*" : sx) e = runEnv (evalArith (*) 1 sx) e
-eval (Atom "div" : sx) e = runEnv (evalBin div sx) e
+eval (Atom "div" : sx) e = runEnv (evalBin quot sx) e
 eval (Atom "mod" : sx) e = runEnv (evalBin mod sx) e
 eval (Atom "<" : sx) e = runEnv (evalBin (<) sx) e
 -- Special forms
@@ -59,7 +60,11 @@ eval (Atom "cond" : sx) e = evalCond sx e
 eval ((SExpr (Atom "lambda" : sx)) : sx') e = runEnv (evalLambda sx sx') e
 -- Bindings
 eval l@(Atom "lambda" : _) e = Right (SExpr l, e)
--- Recursive evaluation
+-- Atom evaluation
+eval [a@(Atom _)] e
+    | Right _ <- toInt a = Right (a, e)
+    | otherwise = runEnv (evalValue a) e
+-- Define application
 eval (a@(Atom _) : sx) e = do
     s <- evalValue a e
     eval (s : sx) e
@@ -94,6 +99,7 @@ evalCdr [v] e = evalCdr' =<< evalValue v e
 evalCdr s e = Left $ wrongArgFor "cdr" s e
 
 evalQuote :: SExpr -> Either Error SExprValue
+evalQuote [SExpr s] = Right (SExpr (s <> [Atom "()"]))
 evalQuote [v] = Right v
 evalQuote s = Left $ wrongArgFor "quote" s []
 

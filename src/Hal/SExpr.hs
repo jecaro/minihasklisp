@@ -1,7 +1,6 @@
 module Hal.SExpr where
 
 import Control.Applicative
-import Data.Functor
 import Parser
 
 data SExprValue = Atom String | SExpr SExpr
@@ -43,10 +42,14 @@ parseList :: Parser SExpr
 parseList =
     parseOpen *> some (parseAtom <|> SExpr <$> parseSExpr) <* parseClose
         -- syntaxic sugar
-        <|> parseString "'()" $> [Atom "quote", Atom "()"]
-        <|> parseChar '\'' *> (unsugar <$> parseList)
+        <|> parseChar '\''
+            *> ( unsugar
+                    <$> ( parseAtom
+                            <|> (SExpr <$> parseList)
+                        )
+               )
   where
-    unsugar s = [Atom "quote", SExpr (s <> [Atom "()"])]
+    unsugar a = [Atom "quote", a]
 
 parseAtom :: Parser SExprValue
 parseAtom = Atom <$> (nil <|> ident) <* parseWhitespaces

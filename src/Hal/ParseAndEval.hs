@@ -8,6 +8,7 @@ import Parser
 import qualified Hal.Eval as Eval
 
 data Error = ErParse String | ErEval Eval.Error
+    deriving (Eq, Show)
 type Result = Either Error (SExprValue, Env)
 
 renderResult :: Result -> String
