@@ -158,14 +158,14 @@ evalDefine s e = do
     pure (v, e' : e)
 
 evalLet :: SExpr -> Env -> Either Error (SExprValue, Env)
-evalLet [SExpr defines, s] e =
-    runEnv (evalValue s) =<< getAllEnvs defines
+evalLet [SExpr defines, s] e = do
+    e' <- getAllEnvs defines
+    runEnv (evalValue s) (e' <> e)
   where
-    getAllEnvs = foldMapM (envFromDefine <=< toSExpr)
-    envFromDefine x = snd <$> evalDefine x e
+    getAllEnvs = traverse (envFromDefine <=< toSExpr)
+    envFromDefine x = evalDefine' x e
     toSExpr (SExpr s') = Right s'
     toSExpr s' = Left $ wrongArgFor "let" s' e
-    foldMapM a b = fold <$> traverse a b
 evalLet s e = Left $ wrongArgFor "let" s e
 
 evalCond :: SExpr -> Env -> Either Error (SExprValue, Env)
