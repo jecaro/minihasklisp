@@ -9,18 +9,18 @@ import qualified Hal.Eval as Eval
 
 data Error = ErParse String | ErEval Eval.Error
     deriving (Eq, Show)
-type Result = Either Error (SExprValue, Env)
+type Result = Either Error (SExpr, Env)
 
 renderResult :: Result -> String
 renderResult (Left (ErEval err)) = renderError err
 renderResult (Left (ErParse input)) = "Unable to parse: " <> input
 renderResult (Right (v, e')) =
     unlines
-        [ "r = " <> renderValue v
-        , "e = " <> show (second toPairsValue <$> e')
+        [ "r = " <> render v
+        , "e = " <> show (second toPairs <$> e')
         ]
 
-parseAndEval :: String -> Env -> Either Error (SExprValue, Env)
+parseAndEval :: String -> Env -> Either Error (SExpr, Env)
 parseAndEval input e = do
     (s, input') <- withParseError $ runParser parseSExpr input
     r@(_, e') <- withEvalError $ eval s e
