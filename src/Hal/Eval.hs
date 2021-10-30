@@ -21,7 +21,7 @@ instance ToScheme Int where
 
 data Error
     = WrongArgument String String Env
-    | NotBounded String
+    | NotBound String
     | NotImplemented SExpr
     | IntConvert SExpr
     deriving (Eq, Show)
@@ -32,7 +32,7 @@ renderError (WrongArgument cmd arg env) =
         [ "Wrong argument for " <> cmd <> " " <> arg
         , "With env " <> show env
         ]
-renderError (NotBounded a) = "Not bounded: " <> a
+renderError (NotBound a) = "Not bound: " <> a
 renderError (NotImplemented s) = "Not implemented: " <> toPairs s
 renderError (IntConvert v) = "Int conversion error: " <> toPairs v
 
@@ -63,7 +63,7 @@ eval l@(SExpr (Atom "lambda" : _)) e = Right (l, e)
 -- Function application
 eval (SExpr ((Atom n) : sx)) e
     | Just v <- lookup n e = eval (SExpr (v : sx)) e
-    | otherwise = Left $ NotBounded n
+    | otherwise = Left $ NotBound n
 -- Atom evaluation
 eval a@(Atom n) e
     -- Builtin types
@@ -72,7 +72,7 @@ eval a@(Atom n) e
     | n == "#t" = Right (a, e)
     -- Bindings
     | Just v <- lookup n e = Right (v, e)
-    | otherwise = Left $ NotBounded n
+    | otherwise = Left $ NotBound n
 -- Error
 eval s _ = Left $ NotImplemented s
 

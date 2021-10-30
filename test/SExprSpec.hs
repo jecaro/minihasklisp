@@ -1,6 +1,6 @@
 module SExprSpec (spec) where
 
-import Hal.Eval (Error (NotBounded))
+import Hal.Eval (Error (NotBound))
 import Hal.ParseAndEval
 import Hal.SExpr
 import Parser
@@ -127,7 +127,7 @@ spec = do
                 `shouldBe` Right (Atom "3", [])
 
         it "define" $ do
-            parseAndEval "(foo)" [] `shouldBe` Left (ErEval (NotBounded "foo"))
+            parseAndEval "(foo)" [] `shouldBe` Left (ErEval (NotBound "foo"))
             parseAndEval "(define foo 42)" []
                 `shouldBe` Right (Atom "42", [("foo", Atom "42")])
             parseAndEval "(define foo 42) foo" []
