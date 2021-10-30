@@ -12,7 +12,6 @@ render (SExpr s) = "(" <> render' s <> ")"
   where
     render' [v] = render v
     render' [v, Atom "()"] = render v
-    render' [v, SExpr s'] = render v <> " " <> render' s'
     render' [v1, v2] = render v1 <> " . " <> render v2
     render' (x : xs) = render x <> " " <> render' xs
     render' [] = ""

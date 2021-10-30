@@ -50,9 +50,7 @@ spec = do
             parseAndEval "(cons 1 (cons 2 (cons 3 '())))" []
                 `shouldBe` Right
                     ( SExpr
-                        [ Atom "1"
-                        , SExpr [Atom "2", SExpr [Atom "3", Atom "()"]]
-                        ]
+                        [Atom "1", Atom "2", Atom "3", Atom "()"]
                     , []
                     )
 
@@ -166,5 +164,78 @@ spec = do
                 \ ((eq? 1 2) 'there) (#t 'nope))"
                 []
                 `shouldBe` Right (Atom "here", [])
+    describe "Files" $ do
+        it "fact" $ do
+            evalFile "test/hal/fact.scm" `shouldReturn` Right (Atom "3628800")
+        it "fib" $ do
+            evalFile "test/hal/fib.scm" `shouldReturn` Right (Atom "55")
+        it "sort" $ do
+            evalFile "test/hal/sort.scm"
+                `shouldReturn` Right
+                    ( SExpr
+                        [ Atom "1"
+                        , Atom "2"
+                        , Atom "3"
+                        , Atom "4"
+                        , Atom "5"
+                        , Atom "6"
+                        , Atom "7"
+                        , Atom "8"
+                        , Atom "9"
+                        , Atom "10"
+                        , Atom "11"
+                        , Atom "12"
+                        , Atom "13"
+                        , Atom "14"
+                        , Atom "15"
+                        , Atom "16"
+                        , Atom "17"
+                        , Atom "18"
+                        , Atom "19"
+                        , Atom "20"
+                        , Atom "21"
+                        , Atom "22"
+                        , Atom "23"
+                        , Atom "24"
+                        , Atom "25"
+                        , Atom "26"
+                        , Atom "27"
+                        , Atom "28"
+                        , Atom "29"
+                        , Atom "30"
+                        , Atom "31"
+                        , Atom "32"
+                        , Atom "33"
+                        , Atom "34"
+                        , Atom "35"
+                        , Atom "36"
+                        , Atom "37"
+                        , Atom "38"
+                        , Atom "39"
+                        , Atom "40"
+                        , Atom "41"
+                        , Atom "42"
+                        , Atom "()"
+                        ]
+                    )
+        it "qsort3" $ do
+            evalFile "test/hal/qsort3.scm"
+                `shouldReturn` Right
+                    ( SExpr
+                        [ Atom "1"
+                        , Atom "2"
+                        , Atom "3"
+                        , Atom "4"
+                        , Atom "5"
+                        , Atom "6"
+                        , Atom "7"
+                        , Atom "8"
+                        , Atom "9"
+                        , Atom "()"
+                        ]
+                    )
   where
     parse = runParser parseSExpr
+    evalFile file = do
+        content <- readFile file
+        pure $ fst <$> parseAndEval content []

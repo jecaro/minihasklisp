@@ -81,7 +81,13 @@ eval' :: SExpr -> Env -> Either Error SExpr
 eval' v e = fst <$> eval v e
 
 evalCons :: [SExpr] -> Env -> Either Error SExpr
-evalCons s@[_, _] e = SExpr <$> traverse (`eval'` e) s
+evalCons [v1, v2] e = do
+    v1' <- eval' v1 e
+    s2 <- toSExprList <$> eval' v2 e
+    pure $ SExpr (v1' : s2)
+  where
+    toSExprList a@(Atom _) = [a]
+    toSExprList (SExpr s) = s
 evalCons s e = Left $ wrongArgFor "cons" s e
 
 evalCar :: [SExpr] -> Env -> Either Error SExpr
