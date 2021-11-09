@@ -31,12 +31,12 @@ parseClose = parseChar ')' <* parseWhitespaces
 
 parseSExpr' :: Parser [SExpr]
 parseSExpr' =
-    ( parseOpen *> some parseSExpr <* parseClose
-        -- syntaxic sugar
+    ( parseOpen *> (appendNil <$> some parseSExpr) <* parseClose
         <|> parseChar '\'' *> (unsugar <$> parseSExpr)
     )
         <* parseWhitespaces
   where
+    appendNil s = s <> [Atom "()"]
     unsugar a = [Atom "quote", a]
 
 parseAtom :: Parser SExpr

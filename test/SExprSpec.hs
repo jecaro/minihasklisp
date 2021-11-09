@@ -10,7 +10,16 @@ spec :: Spec
 spec = do
     describe "SExpr" $ do
         it "simple list" $ do
-            parse "(1 2 3)" `shouldBe` Just (SExpr [Atom "1", Atom "2", Atom "3"], "")
+            parse "(1 2 3)"
+                `shouldBe` Just
+                    ( SExpr
+                        [ Atom "1"
+                        , Atom "2"
+                        , Atom "3"
+                        , Atom "()"
+                        ]
+                    , ""
+                    )
 
         it "nested list" $ do
             parse "(1 (1 2 (1 2 3)) 3)"
@@ -20,28 +29,31 @@ spec = do
                         , SExpr
                             [ Atom "1"
                             , Atom "2"
-                            , SExpr [Atom "1", Atom "2", Atom "3"]
+                            , SExpr [Atom "1", Atom "2", Atom "3", Atom "()"]
+                            , Atom "()"
                             ]
                         , Atom "3"
+                        , Atom "()"
                         ]
                     , ""
                     )
 
-        it "syntaxic sugar" $ do
-            parse "'()" `shouldBe` Just (SExpr [Atom "quote", Atom "()"], "")
-            parse "'foo" `shouldBe` Just (SExpr [Atom "quote", Atom "foo"], "")
-            parse "'(1 2 3)"
-                `shouldBe` Just
-                    ( SExpr
-                        [ Atom "quote"
-                        , SExpr
-                            [ Atom "1"
-                            , Atom "2"
-                            , Atom "3"
-                            ]
+    it "syntaxic sugar" $ do
+        parse "'()" `shouldBe` Just (SExpr [Atom "quote", Atom "()"], "")
+        parse "'foo" `shouldBe` Just (SExpr [Atom "quote", Atom "foo"], "")
+        parse "'(1 2 3)"
+            `shouldBe` Just
+                ( SExpr
+                    [ Atom "quote"
+                    , SExpr
+                        [ Atom "1"
+                        , Atom "2"
+                        , Atom "3"
+                        , Atom "()"
                         ]
-                    , ""
-                    )
+                    ]
+                , ""
+                )
 
     describe "Eval" $ do
         it "cons" $ do
@@ -116,8 +128,9 @@ spec = do
                 `shouldBe` Right
                     ( SExpr
                         [ Atom "lambda"
-                        , SExpr [Atom "a", Atom "b"]
-                        , SExpr [Atom "+", Atom "a", Atom "b"]
+                        , SExpr [Atom "a", Atom "b", Atom "()"]
+                        , SExpr [Atom "+", Atom "a", Atom "b", Atom "()"]
+                        , Atom "()"
                         ]
                     , []
                     )
@@ -133,8 +146,9 @@ spec = do
             let addBody =
                     SExpr
                         [ Atom "lambda"
-                        , SExpr [Atom "a", Atom "b"]
-                        , SExpr [Atom "+", Atom "a", Atom "b"]
+                        , SExpr [Atom "a", Atom "b", Atom "()"]
+                        , SExpr [Atom "+", Atom "a", Atom "b", Atom "()"]
+                        , Atom "()"
                         ]
             parseAndEval "(define add (lambda (a b) (+ a b)))" []
                 `shouldBe` Right (addBody, [("add", addBody)])
@@ -143,8 +157,9 @@ spec = do
             let subBody =
                     SExpr
                         [ Atom "lambda"
-                        , SExpr [Atom "a", Atom "b"]
-                        , SExpr [Atom "-", Atom "a", Atom "b"]
+                        , SExpr [Atom "a", Atom "b", Atom "()"]
+                        , SExpr [Atom "-", Atom "a", Atom "b", Atom "()"]
+                        , Atom "()"
                         ]
             parseAndEval "(define (sub a b) (- a b))" []
                 `shouldBe` Right (subBody, [("sub", subBody)])
