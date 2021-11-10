@@ -107,7 +107,6 @@ evalCdr [v, Atom "()"] e = evalCdr' =<< eval' v e
 evalCdr s e = Left $ wrongArgFor "cdr" s e
 
 evalQuote :: [SExpr] -> Either Error SExpr
-evalQuote [v] = Right v
 evalQuote [v, Atom "()"] = Right v
 evalQuote s = Left $ wrongArgFor "quote" s []
 

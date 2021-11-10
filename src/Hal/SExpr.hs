@@ -37,7 +37,7 @@ parseSExpr' =
         <* parseWhitespaces
   where
     appendNil s = s <> [Atom "()"]
-    unsugar a = [Atom "quote", a]
+    unsugar a = [Atom "quote", a, Atom "()"]
 
 parseAtom :: Parser SExpr
 parseAtom = Atom <$> (nil <|> ident) <* parseWhitespaces

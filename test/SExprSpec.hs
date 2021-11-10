@@ -39,8 +39,8 @@ spec = do
                     )
 
     it "syntaxic sugar" $ do
-        parse "'()" `shouldBe` Just (SExpr [Atom "quote", Atom "()"], "")
-        parse "'foo" `shouldBe` Just (SExpr [Atom "quote", Atom "foo"], "")
+        parse "'()" `shouldBe` Just (SExpr [Atom "quote", Atom "()", Atom "()"], "")
+        parse "'foo" `shouldBe` Just (SExpr [Atom "quote", Atom "foo", Atom "()"], "")
         parse "'(1 2 3)"
             `shouldBe` Just
                 ( SExpr
@@ -51,6 +51,7 @@ spec = do
                         , Atom "3"
                         , Atom "()"
                         ]
+                    , Atom "()"
                     ]
                 , ""
                 )
