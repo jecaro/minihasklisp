@@ -30,7 +30,7 @@ main :: IO ()
 main = do
     options@Options{opFile = file, opInteractive = interactive} <-
         parseOptions <$> getArgs
-    if valid options
+    if invalid options
         then do
             progName <- getProgName
             putStrLn $ progName <> ": [-i] [-h] [file]"
@@ -38,7 +38,7 @@ main = do
             runInputT defaultSettings $ do
                 initialEnv file >>= toRepl interactive
   where
-    valid Options{opFile = file, opInteractive = interactive, opHelp = help} =
+    invalid Options{opFile = file, opInteractive = interactive, opHelp = help} =
         help || (not interactive && isNothing file)
     initialEnv Nothing = pure []
     initialEnv (Just file) = interpretFile file
