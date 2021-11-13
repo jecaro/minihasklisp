@@ -21,7 +21,19 @@ toPairs (Atom a) = a
 toPairs (SExpr s) = "(" <> unwords (toPairs <$> s) <> ")"
 
 parseSExpr :: Parser SExpr
-parseSExpr = parseAtom <|> SExpr <$> parseSExpr'
+parseSExpr = parseAtom <|> parseList <|> parsePair
+
+parseDot :: Parser Char
+parseDot = parseChar '.' <* parseWhitespaces
+
+parsePair :: Parser SExpr
+parsePair =
+    flattenList
+        <$> (parseOpen *> parseSExpr)
+        <*> (parseDot *> parseSExpr <* parseClose)
+  where
+    flattenList a1 (SExpr s) = SExpr (a1 : s)
+    flattenList a1 a2 = SExpr [a1, a2]
 
 parseOpen :: Parser Char
 parseOpen = parseChar '(' <* parseWhitespaces
@@ -29,12 +41,12 @@ parseOpen = parseChar '(' <* parseWhitespaces
 parseClose :: Parser Char
 parseClose = parseChar ')' <* parseWhitespaces
 
-parseSExpr' :: Parser [SExpr]
-parseSExpr' =
-    ( parseOpen *> (appendNil <$> some parseSExpr) <* parseClose
-        <|> parseChar '\'' *> (unsugar <$> parseSExpr)
-    )
-        <* parseWhitespaces
+parseList :: Parser SExpr
+parseList =
+    SExpr
+        <$> ( parseOpen *> (appendNil <$> some parseSExpr) <* parseClose
+                <|> parseChar '\'' *> (unsugar <$> parseSExpr)
+            )
   where
     appendNil s = s <> [Atom "()"]
     unsugar a = [Atom "quote", a, Atom "()"]
@@ -43,5 +55,5 @@ parseAtom :: Parser SExpr
 parseAtom = Atom <$> (nil <|> ident) <* parseWhitespaces
   where
     ident = some (parsePred (`notElem` invalidChars))
-    invalidChars = " \n()'" :: String
+    invalidChars = " \n()'." :: String
     nil = parseString "()"

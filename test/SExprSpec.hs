@@ -38,23 +38,43 @@ spec = do
                     , ""
                     )
 
-    it "syntaxic sugar" $ do
-        parse "'()" `shouldBe` Just (SExpr [Atom "quote", Atom "()", Atom "()"], "")
-        parse "'foo" `shouldBe` Just (SExpr [Atom "quote", Atom "foo", Atom "()"], "")
-        parse "'(1 2 3)"
-            `shouldBe` Just
-                ( SExpr
-                    [ Atom "quote"
-                    , SExpr
-                        [ Atom "1"
-                        , Atom "2"
-                        , Atom "3"
+        it "syntaxic sugar" $ do
+            parse "'()" `shouldBe` Just (SExpr [Atom "quote", Atom "()", Atom "()"], "")
+            parse "'foo" `shouldBe` Just (SExpr [Atom "quote", Atom "foo", Atom "()"], "")
+            parse "'(1 2 3)"
+                `shouldBe` Just
+                    ( SExpr
+                        [ Atom "quote"
+                        , SExpr
+                            [ Atom "1"
+                            , Atom "2"
+                            , Atom "3"
+                            , Atom "()"
+                            ]
                         , Atom "()"
                         ]
-                    , Atom "()"
-                    ]
-                , ""
-                )
+                    , ""
+                    )
+
+        it "parse pair" $ do
+            parse "(1 . ())" `shouldBe` Just (SExpr [Atom "1", Atom "()"], "")
+            parse "(1 . (2 . ()))"
+                `shouldBe` Just (SExpr [Atom "1", Atom "2", Atom "()"], "")
+            parse "'((a . b) . ((foo . bar) . ((5 . 6) . ())))"
+                `shouldBe` Just
+                    ( SExpr
+                        [ Atom "quote"
+                        , SExpr
+                            [ SExpr
+                                [Atom "a", Atom "b"]
+                            , SExpr [Atom "foo", Atom "bar"]
+                            , SExpr [Atom "5", Atom "6"]
+                            , Atom "()"
+                            ]
+                        , Atom "()"
+                        ]
+                    , ""
+                    )
 
     describe "Eval" $ do
         it "cons" $ do
