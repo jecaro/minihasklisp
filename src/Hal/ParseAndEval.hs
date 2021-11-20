@@ -11,14 +11,15 @@ data Error = ErParse String | ErEval Eval.Error
     deriving (Eq, Show)
 type Result = Either Error (SExpr, Env)
 
-renderResult :: Result -> String
-renderResult (Left (ErEval err)) = renderError err
-renderResult (Left (ErParse input)) = "Unable to parse: " <> input
-renderResult (Right (v, e')) =
+renderResult :: Bool -> Result -> String
+renderResult _ (Left (ErEval err)) = renderError err
+renderResult _ (Left (ErParse input)) = "Unable to parse: " <> input
+renderResult True (Right (v, e')) =
     unlines
         [ "r = " <> render v
         , "e = " <> show (second toPairs <$> e')
         ]
+renderResult False (Right (v, _)) = render v
 
 parseAndEval :: String -> Env -> Either Error (SExpr, Env)
 parseAndEval input e = do

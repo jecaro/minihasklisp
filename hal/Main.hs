@@ -1,17 +1,43 @@
+import Control.Monad.IO.Class (liftIO)
+import Data.Either
 import Data.Maybe
 import Hal.Eval
 import Hal.ParseAndEval
 import System.Console.Haskeline
 import System.Environment
 
-import Control.Monad.IO.Class (liftIO)
-import Data.Either
-
 data Options = Options
     { opFile :: Maybe String
+    , opEnvironment :: Bool
     , opInteractive :: Bool
     , opHelp :: Bool
     }
+
+type PrintResult = Result -> InputT IO ()
+
+main :: IO ()
+main = do
+    options@Options
+        { opFile = file
+        , opInteractive = interactive
+        , opEnvironment = environment
+        } <-
+        parseOptions <$> getArgs
+    if invalid options
+        then do
+            progName <- getProgName
+            putStrLn $ progName <> ": [-i] [-h] [-e] [file]"
+        else do
+            runInputT defaultSettings $ do
+                let printResult = outputStrLn . renderResult environment
+                initialEnv printResult file >>= toRepl printResult interactive
+  where
+    invalid Options{opFile = file, opInteractive = interactive, opHelp = help} =
+        help || (not interactive && isNothing file)
+    initialEnv printResult (Just file) = interpretFile printResult file
+    initialEnv _ Nothing = pure []
+    toRepl printResult True = repl printResult
+    toRepl _ False = const $ pure ()
 
 parseOptions :: [String] -> Options
 parseOptions = foldr f def
@@ -19,45 +45,29 @@ parseOptions = foldr f def
     def =
         Options
             { opFile = Nothing
+            , opEnvironment = False
             , opInteractive = False
             , opHelp = False
             }
     f "-i" o = o{opInteractive = True}
+    f "-e" o = o{opEnvironment = True}
     f "-h" o = o{opHelp = True}
     f file o = o{opFile = Just file}
 
-main :: IO ()
-main = do
-    options@Options{opFile = file, opInteractive = interactive} <-
-        parseOptions <$> getArgs
-    if invalid options
-        then do
-            progName <- getProgName
-            putStrLn $ progName <> ": [-i] [-h] [file]"
-        else do
-            runInputT defaultSettings $ do
-                initialEnv file >>= toRepl interactive
-  where
-    invalid Options{opFile = file, opInteractive = interactive, opHelp = help} =
-        help || (not interactive && isNothing file)
-    initialEnv Nothing = pure []
-    initialEnv (Just file) = interpretFile file
-    toRepl True = repl
-    toRepl False = const $ pure ()
-
-interpretFile :: String -> InputT IO Env
-interpretFile file = do
+interpretFile :: PrintResult -> String -> InputT IO Env
+interpretFile p file = do
     content <- liftIO $ readFile file
-    parseEvalPrint content []
+    parseEvalPrint p content []
 
-parseEvalPrint :: String -> Env -> InputT IO Env
-parseEvalPrint input e = do
+parseEvalPrint :: PrintResult -> String -> Env -> InputT IO Env
+parseEvalPrint printResult input e = do
     let r = parseAndEval input e
-    outputStrLn $ renderResult r
+    printResult r
     pure $ fromRight e (snd <$> r)
 
-repl :: Env -> InputT IO ()
-repl e = evalLine =<< getInputLine "> "
+repl :: PrintResult -> Env -> InputT IO ()
+repl printResult e = evalLine =<< getInputLine "> "
   where
-    evalLine Nothing = repl e
-    evalLine (Just input) = parseEvalPrint input e >>= repl
+    evalLine Nothing = repl printResult e
+    evalLine (Just input) =
+        repl printResult =<< parseEvalPrint printResult input e
