@@ -1,4 +1,4 @@
-name:                epitech
+name:                minihasklisp
 version:             0.1.0.0
 license:             BSD3
 author:              "Jean-Charles Quillet"
@@ -24,12 +24,12 @@ executables:
     main: Main.hs
     source-dirs: eval-expr
     dependencies:
-      - epitech
-  hal:
+      - minihasklisp
+  minihasklisp:
     main: Main.hs
-    source-dirs: hal
+    source-dirs: minihasklisp
     dependencies:
-      - epitech
+      - minihasklisp
       - haskeline
 
 ghc-options:
@@ -46,7 +46,7 @@ tests:
     main:                Spec.hs
     source-dirs:         test
     dependencies:
-    - epitech
+    - minihasklisp
     - hspec
 
 default-extensions:

@@ -1,8 +1,8 @@
 import Control.Monad.IO.Class (liftIO)
 import Data.Either
 import Data.Maybe
-import Hal.Eval
-import Hal.ParseAndEval
+import MiniHaskLisp.Eval
+import MiniHaskLisp.ParseAndEval
 import System.Console.Haskeline
 import System.Environment
 

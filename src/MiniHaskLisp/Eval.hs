@@ -1,10 +1,10 @@
 {-# LANGUAGE TupleSections #-}
 
-module Hal.Eval where
+module MiniHaskLisp.Eval where
 
 import Control.Monad
 import Data.Foldable
-import Hal.SExpr
+import MiniHaskLisp.SExpr
 import Parser
 
 type Env = [(String, SExpr)]

@@ -1,4 +1,4 @@
-module Hal.SExpr where
+module MiniHaskLisp.SExpr where
 
 import Control.Applicative
 import Parser
