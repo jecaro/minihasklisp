@@ -1,0 +1,60 @@
+cabal-version: 2.2
+
+name: minihasklisp
+version: 0.1.0.0
+build-type: Simple
+
+common defaults
+  default-language: Haskell2010
+  default-extensions:
+    OverloadedStrings
+    ScopedTypeVariables
+  ghc-options:
+    -Wall
+    -Wcompat
+    -Widentities
+    -Wincomplete-record-updates
+    -Wincomplete-uni-patterns
+    -Wpartial-fields
+    -Wredundant-constraints
+  build-depends: base
+
+library
+  import: defaults
+  exposed-modules:
+    EvalExpr.Expression
+    EvalExpr.JSONParser
+    EvalExpr.UrlParser
+    MiniHaskLisp.Eval
+    MiniHaskLisp.ParseAndEval
+    MiniHaskLisp.SExpr
+    Parser
+  hs-source-dirs: src
+
+executable eval-expr
+  import: defaults
+  main-is: Main.hs
+  hs-source-dirs: eval-expr
+  build-depends: minihasklisp
+
+executable minihasklisp
+  import: defaults
+  main-is: Main.hs
+  hs-source-dirs: minihasklisp
+  build-depends:
+    haskeline,
+    minihasklisp
+
+test-suite spec
+  import: defaults
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+    ExpressionSpec
+    ParserSpec
+    SExprSpec
+  hs-source-dirs:
+    test
+  build-depends:
+    hspec,
+    minihasklisp
