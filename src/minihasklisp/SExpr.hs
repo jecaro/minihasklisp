@@ -1,7 +1,7 @@
-module MiniHaskLisp.SExpr where
+module SExpr (SExpr (..), parseSExpr, render, toPairs) where
 
-import Control.Applicative
-import Parser
+import Control.Applicative (some, (<|>))
+import Parser (Parser (..), parseChar, parsePred, parseString, parseWhitespaces)
 
 data SExpr = Atom String | SExpr [SExpr]
     deriving (Eq, Show)

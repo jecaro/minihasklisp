@@ -9,6 +9,7 @@ common defaults
   default-extensions:
     OverloadedStrings
     ScopedTypeVariables
+    TupleSections
   ghc-options:
     -Wall
     -Wcompat
@@ -19,42 +20,77 @@ common defaults
     -Wredundant-constraints
   build-depends: base
 
-library
+-- Parser library
+
+library parser-lib
   import: defaults
-  exposed-modules:
-    EvalExpr.Expression
-    EvalExpr.JSONParser
-    EvalExpr.UrlParser
-    MiniHaskLisp.Eval
-    MiniHaskLisp.ParseAndEval
-    MiniHaskLisp.SExpr
-    Parser
-  hs-source-dirs: src
+  exposed-modules: Parser
+  hs-source-dirs: src/parser
+
+test-suite parser-spec
+  import: defaults
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules: ParserSpec
+  hs-source-dirs: test/parser
+  build-depends:
+    hspec,
+    parser-lib
+
+-- eval-expr project
+
+library eval-expr-lib
+  import: defaults
+  exposed-modules: Expression
+  hs-source-dirs: src/eval-expr
+  build-depends: parser-lib
 
 executable eval-expr
   import: defaults
   main-is: Main.hs
-  hs-source-dirs: eval-expr
-  build-depends: minihasklisp
+  hs-source-dirs: app/eval-expr
+  build-depends:
+    eval-expr-lib,
+    parser-lib
+
+test-suite eval-expr-spec
+  import: defaults
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules: ExpressionSpec
+  hs-source-dirs: test/eval-expr
+  build-depends:
+    hspec,
+    eval-expr-lib,
+    parser-lib
+
+-- minihasklisp project
+
+library minihasklisp-lib
+  import: defaults
+  exposed-modules:
+    Eval
+    ParseAndEval
+    SExpr
+  hs-source-dirs: src/minihasklisp
+  build-depends: parser-lib
 
 executable minihasklisp
   import: defaults
   main-is: Main.hs
-  hs-source-dirs: minihasklisp
+  hs-source-dirs: app/minihasklisp
   build-depends:
     haskeline,
-    minihasklisp
+    minihasklisp-lib
 
-test-suite spec
+test-suite minihasklisp-spec
   import: defaults
   type: exitcode-stdio-1.0
   main-is: Spec.hs
-  other-modules:
-    ExpressionSpec
-    ParserSpec
-    SExprSpec
-  hs-source-dirs:
-    test
+  other-modules: SExprSpec
+  hs-source-dirs: test/minihasklisp
   build-depends:
     hspec,
-    minihasklisp
+    minihasklisp-lib,
+    parser-lib
+

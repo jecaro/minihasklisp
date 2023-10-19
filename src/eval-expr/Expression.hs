@@ -1,7 +1,13 @@
-module EvalExpr.Expression where
+module Expression (
+    Expression (..),
+    Operator (..),
+    parseExpression,
+    parseOperator,
+    eval,
+) where
 
 import Control.Applicative ((<|>))
-import Parser
+import Parser (Parser (..), parseChar, parseDouble, parseWhitespaces)
 
 data Operator = Plus | Minus | Product | Divide | Power
     deriving (Eq, Show)
@@ -16,16 +22,17 @@ parseExpression = withParenOrNot (parseBinary <|> parseNum) <* parseWhitespaces
     parseBinary =
         ( binaryWithPriority
             <$> parseNum
-                <*> parseOperator'
-                <*> parseExpression
+            <*> parseOperator'
+            <*> parseExpression
         )
-            <|> ( Binary <$> (parseOpen' *> parseExpression <* parseClose')
+            <|> ( Binary
+                    <$> (parseOpen' *> parseExpression <* parseClose')
                     <*> parseOperator'
                     <*> parseExpression
                 )
     binaryWithPriority l op r
         | (Binary l' op' r') <- r
-          , priority op' < priority op =
+        , priority op' < priority op =
             Binary (Binary l op l') op' r'
         | otherwise = Binary l op r
     parseOperator' = parseOperator <* parseWhitespaces

@@ -1,10 +1,20 @@
-module ParserSpec (spec)
-where
+module ParserSpec (spec) where
 
-import Test.Hspec
+import Test.Hspec (Spec, describe, it, shouldBe)
 
-import Control.Applicative
-import Parser
+import Control.Applicative (many, some, (<|>))
+import Parser (
+    Parser (..),
+    parseAnd,
+    parseAndWith,
+    parseAnyChar,
+    parseChar,
+    parseDouble,
+    parseInt,
+    parseTuple,
+    parseTuple',
+    parseUInt,
+ )
 
 spec :: Spec
 spec = do

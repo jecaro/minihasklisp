@@ -1,5 +1,5 @@
-import EvalExpr.Expression
-import Parser
+import Expression (eval, parseExpression)
+import Parser (Parser (..))
 
 main :: IO ()
 main = interact (unlines . fmap interpret . lines)

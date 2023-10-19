@@ -1,10 +1,16 @@
 import Control.Monad.IO.Class (liftIO)
-import Data.Either
-import Data.Maybe
-import MiniHaskLisp.Eval
-import MiniHaskLisp.ParseAndEval
-import System.Console.Haskeline
-import System.Environment
+import Data.Either (fromRight)
+import Data.Maybe (isNothing)
+import Eval (Env)
+import ParseAndEval (Result, parseAndEval, renderResult)
+import System.Console.Haskeline (
+    InputT,
+    defaultSettings,
+    getInputLine,
+    outputStrLn,
+    runInputT,
+ )
+import System.Environment (getArgs, getProgName)
 
 data Options = Options
     { opFile :: Maybe String

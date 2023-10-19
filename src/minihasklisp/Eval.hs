@@ -1,11 +1,9 @@
-{-# LANGUAGE TupleSections #-}
+module Eval (Error (..), Env, eval, renderError) where
 
-module MiniHaskLisp.Eval where
-
-import Control.Monad
-import Data.Foldable
-import MiniHaskLisp.SExpr
-import Parser
+import Control.Monad (liftM2, (<=<))
+import Data.Foldable (foldl')
+import Parser (Parser (..), parseInt)
+import SExpr (SExpr (..), toPairs)
 
 type Env = [(String, SExpr)]
 

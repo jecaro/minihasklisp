@@ -1,8 +1,21 @@
-module Parser where
+module Parser (
+    Parser (..),
+    parseAnd,
+    parseAndWith,
+    parseAnyChar,
+    parseChar,
+    parseDouble,
+    parsePred,
+    parseString,
+    parseInt,
+    parseUInt,
+    parseTuple,
+    parseTuple',
+    parseWhitespaces,
+) where
 
-import Control.Applicative
-import Control.Monad
-import Data.Foldable (asum)
+import Control.Applicative (Alternative (..), asum, liftA2, optional)
+import Control.Monad (void)
 import qualified Data.List as L
 import Data.Maybe (fromMaybe)
 import Text.Read (readMaybe)

@@ -1,9 +1,15 @@
 module ExpressionSpec (spec) where
 
-import Test.Hspec
+import Test.Hspec (Spec, describe, it, shouldBe, shouldSatisfy)
 
-import EvalExpr.Expression
-import Parser
+import Expression (
+    Expression (..),
+    Operator (..),
+    eval,
+    parseExpression,
+    parseOperator,
+ )
+import Parser (Parser (..))
 
 spec :: Spec
 spec = do

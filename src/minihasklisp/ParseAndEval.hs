@@ -1,11 +1,11 @@
-module MiniHaskLisp.ParseAndEval where
+module ParseAndEval (Error (..), Result, parseAndEval, renderResult) where
 
 import Data.Bifunctor (second)
-import MiniHaskLisp.Eval hiding (Error)
-import MiniHaskLisp.SExpr
-import Parser
+import Eval (Env, eval, renderError)
+import Parser (Parser (..))
+import SExpr (SExpr (..), parseSExpr, render, toPairs)
 
-import qualified MiniHaskLisp.Eval as Eval
+import qualified Eval
 
 data Error = ErParse String | ErEval Eval.Error
     deriving (Eq, Show)

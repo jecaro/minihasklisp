@@ -1,10 +1,10 @@
 module SExprSpec (spec) where
 
-import MiniHaskLisp.Eval (Error (NotBound))
-import MiniHaskLisp.ParseAndEval
-import MiniHaskLisp.SExpr
-import Parser
-import Test.Hspec
+import Eval (Error (NotBound))
+import ParseAndEval (Error (..), parseAndEval)
+import Parser (Parser (..))
+import SExpr (SExpr (..), parseSExpr)
+import Test.Hspec (Spec, describe, it, shouldBe, shouldReturn)
 
 spec :: Spec
 spec = do
@@ -202,11 +202,11 @@ spec = do
                 `shouldBe` Right (Atom "here", [])
     describe "Files" $ do
         it "fact" $ do
-            evalFile "test/minihasklisp/fact.scm" `shouldReturn` Right (Atom "3628800")
+            evalFile "test/minihasklisp/files/fact.scm" `shouldReturn` Right (Atom "3628800")
         it "fib" $ do
-            evalFile "test/minihasklisp/fib.scm" `shouldReturn` Right (Atom "55")
+            evalFile "test/minihasklisp/files/fib.scm" `shouldReturn` Right (Atom "55")
         it "sort" $ do
-            evalFile "test/minihasklisp/sort.scm"
+            evalFile "test/minihasklisp/files/sort.scm"
                 `shouldReturn` Right
                     ( SExpr
                         [ Atom "1"
@@ -255,7 +255,7 @@ spec = do
                         ]
                     )
         it "qsort3" $ do
-            evalFile "test/minihasklisp/qsort3.scm"
+            evalFile "test/minihasklisp/files/qsort3.scm"
                 `shouldReturn` Right
                     ( SExpr
                         [ Atom "1"
