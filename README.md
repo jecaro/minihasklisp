@@ -2,33 +2,9 @@
 
 [![CI][status-png]][status]
 
-Applicative parser [implementation](/src/parser/Parser.hs) along two examples 
-of its use:
-
-- [eval-expr](#eval-expr): a REPL that evaluates an arithmetic expression
-- [minihasklisp](#minihasklisp-1): a small yet fully functional lisp 
-  interpreter
-
-# eval-expr
-
-`eval-expr` is a simple REPL that evaluates arithmetic expressions. It supports 
-the following operations on `Double`: addition `+`, substraction `-`, 
-multiplication `*`, division `/` and exponentiation (`^`) with the usual 
-predecedence and parenthesis.
-
-Example:
-
-```
-$ ./eval-expr
-1+1
-= 2.0
-3+8/60+29/60^2+44/60^3
-= 3.1415925925925925
-```
-
 # minihasklisp
 
-`minihasklisp` is a tiny lisp interpreter.
+`minihasklisp` is a tiny lisp interpreter with minimal dependencies.
 
 ## Options
 
@@ -264,5 +240,5 @@ build the project and `haskell-language-server` for a better developer
 experience.
 
 [nix]: https://nixos.org/
-[status-png]: https://github.com/jecaro/wolfram/workflows/CI/badge.svg
-[status]: https://github.com/jecaro/wolfram/actions
+[status-png]: https://github.com/jecaro/minihasklisp/workflows/CI/badge.svg
+[status]: https://github.com/jecaro/minihasklisp/actions

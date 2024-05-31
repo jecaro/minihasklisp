@@ -37,33 +37,6 @@ test-suite parser-spec
     hspec,
     parser-lib
 
--- eval-expr project
-
-library eval-expr-lib
-  import: defaults
-  exposed-modules: Expression
-  hs-source-dirs: src/eval-expr
-  build-depends: parser-lib
-
-executable eval-expr
-  import: defaults
-  main-is: Main.hs
-  hs-source-dirs: app/eval-expr
-  build-depends:
-    eval-expr-lib,
-    parser-lib
-
-test-suite eval-expr-spec
-  import: defaults
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules: ExpressionSpec
-  hs-source-dirs: test/eval-expr
-  build-depends:
-    hspec,
-    eval-expr-lib,
-    parser-lib
-
 -- minihasklisp project
 
 library minihasklisp-lib
