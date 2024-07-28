@@ -14,7 +14,7 @@ module Parser (
     parseWhitespaces,
 ) where
 
-import Control.Applicative (Alternative (..), asum, liftA2, optional)
+import Control.Applicative (Alternative (..), asum, optional)
 import Control.Monad (void)
 import qualified Data.List as L
 import Data.Maybe (fromMaybe)
