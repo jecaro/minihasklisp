@@ -6,9 +6,9 @@
       minihasklisp = pkgs.haskellPackages.callCabal2nix "minihasklisp" ./. { };
     in
     {
-      defaultPackage.x86_64-linux = minihasklisp;
+      packages.x86_64-linux.default = minihasklisp;
 
-      devShell.x86_64-linux =
+      devShells.x86_64-linux.default =
         pkgs.haskellPackages.shellFor {
           packages = p: [ minihasklisp ];
           withHoogle = true;
@@ -17,8 +17,6 @@
             pkgs.haskellPackages.ghcid
             pkgs.haskellPackages.cabal-install
           ];
-          # Change the prompt to show that you are in a devShell
-          shellHook = "export PS1='\\[\\e[1;34m\\]dev > \\[\\e[0m\\]'";
         };
     };
 }
