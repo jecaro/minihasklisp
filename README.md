@@ -2,8 +2,6 @@
 
 [![CI][status-png]][status]
 
-# minihasklisp
-
 `minihasklisp` is a tiny lisp interpreter with minimal dependencies.
 
 ## Options
