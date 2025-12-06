@@ -1,7 +1,6 @@
 module Eval (Error (..), Env, eval, renderError) where
 
 import Control.Monad (liftM2, (<=<))
-import Data.Foldable (foldl')
 import Parser (Parser (..), parseInt)
 import SExpr (SExpr (..), toPairs)
 
